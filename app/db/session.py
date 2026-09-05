@@ -1,8 +1,11 @@
+from pathlib import Path
+
+from alembic import command
+from alembic.config import Config
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.core.config import get_settings
-from app.db.base import Base
 
 settings = get_settings()
 
@@ -15,7 +18,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def init_db() -> None:
-    from app.models import item as _item_model  # noqa: F401
-    from app.models import user as _user_model  # noqa: F401
-
-    Base.metadata.create_all(bind=engine)
+    alembic_ini = Path(__file__).resolve().parents[2] / "alembic.ini"
+    alembic_cfg = Config(str(alembic_ini))
+    command.upgrade(alembic_cfg, "head")
