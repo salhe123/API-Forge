@@ -1,21 +1,31 @@
-def test_create_and_get_item(client):
+def test_create_and_get_item(client, auth_headers):
     created = client.post(
         "/api/v1/items/",
+        headers=auth_headers,
         json={"name": "Steel Blade", "description": "First forging", "strength": 40},
     )
     assert created.status_code == 201
     body = created.json()
     assert body["id"] == 1
     assert body["name"] == "Steel Blade"
+    assert body["owner_id"] == 1
 
     fetched = client.get("/api/v1/items/1")
     assert fetched.status_code == 200
     assert fetched.json() == body
 
 
-def test_list_items_filters_by_min_strength(client):
-    client.post("/api/v1/items/", json={"name": "Soft Iron", "strength": 10})
-    client.post("/api/v1/items/", json={"name": "Hard Steel", "strength": 80})
+def test_list_items_filters_by_min_strength(client, auth_headers):
+    client.post(
+        "/api/v1/items/",
+        headers=auth_headers,
+        json={"name": "Soft Iron", "strength": 10},
+    )
+    client.post(
+        "/api/v1/items/",
+        headers=auth_headers,
+        json={"name": "Hard Steel", "strength": 80},
+    )
 
     response = client.get("/api/v1/items/", params={"min_strength": 50})
     assert response.status_code == 200
@@ -23,10 +33,11 @@ def test_list_items_filters_by_min_strength(client):
     assert names == ["Hard Steel"]
 
 
-def test_update_item(client):
-    client.post("/api/v1/items/", json={"name": "Draft", "strength": 5})
+def test_update_item(client, auth_headers):
+    client.post("/api/v1/items/", headers=auth_headers, json={"name": "Draft", "strength": 5})
     response = client.put(
         "/api/v1/items/1",
+        headers=auth_headers,
         json={"name": "Finished", "description": "Tempered", "strength": 70},
     )
     assert response.status_code == 200
@@ -34,9 +45,9 @@ def test_update_item(client):
     assert response.json()["strength"] == 70
 
 
-def test_delete_item(client):
-    client.post("/api/v1/items/", json={"name": "Scrap"})
-    deleted = client.delete("/api/v1/items/1")
+def test_delete_item(client, auth_headers):
+    client.post("/api/v1/items/", headers=auth_headers, json={"name": "Scrap"})
+    deleted = client.delete("/api/v1/items/1", headers=auth_headers)
     assert deleted.status_code == 204
 
     missing = client.get("/api/v1/items/1")
@@ -49,6 +60,25 @@ def test_missing_item_returns_404(client):
     assert response.status_code == 404
 
 
-def test_create_rejects_invalid_strength(client):
-    response = client.post("/api/v1/items/", json={"name": "Broken", "strength": 0})
+def test_create_rejects_invalid_strength(client, auth_headers):
+    response = client.post(
+        "/api/v1/items/",
+        headers=auth_headers,
+        json={"name": "Broken", "strength": 0},
+    )
     assert response.status_code == 422
+
+
+def test_create_item_requires_auth(client):
+    response = client.post("/api/v1/items/", json={"name": "Nope"})
+    assert response.status_code == 401
+
+
+def test_cannot_update_someone_elses_item(client, auth_headers, other_auth_headers):
+    client.post("/api/v1/items/", headers=auth_headers, json={"name": "Mine"})
+    response = client.put(
+        "/api/v1/items/1",
+        headers=other_auth_headers,
+        json={"name": "Stolen", "strength": 10},
+    )
+    assert response.status_code == 403

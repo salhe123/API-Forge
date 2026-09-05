@@ -3,8 +3,9 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_current_user, get_db
 from app.schemas.item import Item, ItemCreate, ItemUpdate
+from app.schemas.user import User
 from app.services import items as items_service
 
 router = APIRouter()
@@ -24,8 +25,12 @@ def get_item(item_id: int, db: Session = Depends(get_db)) -> Item:
 
 
 @router.post("/", response_model=Item, status_code=status.HTTP_201_CREATED)
-def create_item(payload: ItemCreate, db: Session = Depends(get_db)) -> Item:
-    return items_service.create_item(db, payload)
+def create_item(
+    payload: ItemCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Item:
+    return items_service.create_item(db, payload, current_user)
 
 
 @router.put("/{item_id}", response_model=Item)
@@ -33,10 +38,15 @@ def update_item(
     item_id: int,
     payload: ItemUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> Item:
-    return items_service.update_item(db, item_id, payload)
+    return items_service.update_item(db, item_id, payload, current_user)
 
 
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_item(item_id: int, db: Session = Depends(get_db)) -> None:
-    items_service.delete_item(db, item_id)
+def delete_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    items_service.delete_item(db, item_id, current_user)

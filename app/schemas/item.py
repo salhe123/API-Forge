@@ -19,3 +19,4 @@ class Item(ItemCreate):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    owner_id: int

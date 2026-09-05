@@ -25,8 +25,8 @@ def get_item(db: Session, item_id: int) -> Optional[Item]:
     return _to_schema(row)
 
 
-def create_item(db: Session, payload: ItemCreate) -> Item:
-    row = ItemModel(**payload.model_dump())
+def create_item(db: Session, payload: ItemCreate, owner_id: int) -> Item:
+    row = ItemModel(**payload.model_dump(), owner_id=owner_id)
     db.add(row)
     db.commit()
     db.refresh(row)
