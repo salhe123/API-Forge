@@ -1,43 +1,53 @@
-from typing import Dict, List, Optional
+from typing import List, Optional
 
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.models.item import ItemModel
 from app.schemas.item import Item, ItemCreate, ItemUpdate
 
-_items: Dict[int, Item] = {}
-_next_id = 1
+
+def _to_schema(row: ItemModel) -> Item:
+    return Item.model_validate(row)
 
 
-def reset() -> None:
-    global _next_id
-    _items.clear()
-    _next_id = 1
-
-
-def list_items(min_strength: Optional[int] = None) -> List[Item]:
-    items = list(_items.values())
+def list_items(db: Session, min_strength: Optional[int] = None) -> List[Item]:
+    statement = select(ItemModel).order_by(ItemModel.id)
     if min_strength is not None:
-        items = [item for item in items if item.strength >= min_strength]
-    return items
+        statement = statement.where(ItemModel.strength >= min_strength)
+    return [_to_schema(row) for row in db.scalars(statement).all()]
 
 
-def get_item(item_id: int) -> Optional[Item]:
-    return _items.get(item_id)
-
-
-def create_item(payload: ItemCreate) -> Item:
-    global _next_id
-    item = Item(id=_next_id, **payload.model_dump())
-    _items[_next_id] = item
-    _next_id += 1
-    return item
-
-
-def update_item(item_id: int, payload: ItemUpdate) -> Optional[Item]:
-    if item_id not in _items:
+def get_item(db: Session, item_id: int) -> Optional[Item]:
+    row = db.get(ItemModel, item_id)
+    if row is None:
         return None
-    item = Item(id=item_id, **payload.model_dump())
-    _items[item_id] = item
-    return item
+    return _to_schema(row)
 
 
-def delete_item(item_id: int) -> bool:
-    return _items.pop(item_id, None) is not None
+def create_item(db: Session, payload: ItemCreate) -> Item:
+    row = ItemModel(**payload.model_dump())
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return _to_schema(row)
+
+
+def update_item(db: Session, item_id: int, payload: ItemUpdate) -> Optional[Item]:
+    row = db.get(ItemModel, item_id)
+    if row is None:
+        return None
+    for field, value in payload.model_dump().items():
+        setattr(row, field, value)
+    db.commit()
+    db.refresh(row)
+    return _to_schema(row)
+
+
+def delete_item(db: Session, item_id: int) -> bool:
+    row = db.get(ItemModel, item_id)
+    if row is None:
+        return False
+    db.delete(row)
+    db.commit()
+    return True
