@@ -14,9 +14,16 @@ router = APIRouter()
 @router.get("/", response_model=List[Item])
 def list_items(
     min_strength: Optional[int] = Query(default=None, ge=1, le=100),
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> List[Item]:
-    return items_service.list_items(db, min_strength=min_strength)
+    return items_service.list_items(
+        db,
+        min_strength=min_strength,
+        skip=skip,
+        limit=limit,
+    )
 
 
 @router.get("/{item_id}", response_model=Item)

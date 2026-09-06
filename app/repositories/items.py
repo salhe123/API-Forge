@@ -11,10 +11,16 @@ def _to_schema(row: ItemModel) -> Item:
     return Item.model_validate(row)
 
 
-def list_items(db: Session, min_strength: Optional[int] = None) -> List[Item]:
+def list_items(
+    db: Session,
+    min_strength: Optional[int] = None,
+    skip: int = 0,
+    limit: int = 20,
+) -> List[Item]:
     statement = select(ItemModel).order_by(ItemModel.id)
     if min_strength is not None:
         statement = statement.where(ItemModel.strength >= min_strength)
+    statement = statement.offset(skip).limit(limit)
     return [_to_schema(row) for row in db.scalars(statement).all()]
 
 

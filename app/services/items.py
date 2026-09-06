@@ -8,8 +8,18 @@ from app.schemas.item import Item, ItemCreate, ItemUpdate
 from app.schemas.user import User
 
 
-def list_items(db: Session, min_strength: Optional[int] = None) -> List[Item]:
-    return items_repository.list_items(db, min_strength=min_strength)
+def list_items(
+    db: Session,
+    min_strength: Optional[int] = None,
+    skip: int = 0,
+    limit: int = 20,
+) -> List[Item]:
+    return items_repository.list_items(
+        db,
+        min_strength=min_strength,
+        skip=skip,
+        limit=limit,
+    )
 
 
 def get_item(db: Session, item_id: int) -> Item:
