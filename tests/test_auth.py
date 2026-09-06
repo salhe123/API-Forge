@@ -48,3 +48,16 @@ def test_me_returns_current_user(client, auth_headers):
     response = client.get("/api/v1/auth/me", headers=auth_headers)
     assert response.status_code == 200
     assert response.json()["email"] == "forge@example.com"
+
+
+def test_login_accepts_email_with_different_case(client):
+    client.post(
+        "/api/v1/auth/register",
+        json={"email": "Forge@Example.com", "password": "secret123"},
+    )
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "forge@example.com", "password": "secret123"},
+    )
+    assert response.status_code == 200
+    assert response.json()["access_token"]
