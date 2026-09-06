@@ -7,6 +7,7 @@ from typing import Type
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.v1.router import api_v1_router
 from app.core.config import get_settings
@@ -89,6 +90,19 @@ def create_app(testing: bool = False) -> FastAPI:
 
     for exc_class, status_code in _ERROR_STATUS.items():
         _add_error_handler(application, exc_class, status_code)
+
+    @application.exception_handler(StarletteHTTPException)
+    async def http_exception_handler(_request: Request, exc: StarletteHTTPException) -> JSONResponse:
+        if exc.status_code == 404:
+            return JSONResponse(status_code=404, content={"detail": "Not found"})
+        headers = None
+        if exc.status_code == 401:
+            headers = {"WWW-Authenticate": "Bearer"}
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+            headers=headers,
+        )
 
     @application.get("/")
     def hello() -> dict:
