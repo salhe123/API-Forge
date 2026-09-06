@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from typing import Type
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.v1.router import api_v1_router
@@ -51,6 +52,13 @@ def create_app(testing: bool = False) -> FastAPI:
         lifespan=lifespan,
     )
     application.state.testing = testing
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     for exc_class, status_code in _ERROR_STATUS.items():
         _add_error_handler(application, exc_class, status_code)
