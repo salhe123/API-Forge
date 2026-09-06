@@ -44,6 +44,16 @@ def test_list_items_supports_skip_and_limit(client, auth_headers):
     assert names == ["Two"]
 
 
+def test_list_items_searches_by_name(client, auth_headers):
+    client.post("/api/v1/items/", headers=auth_headers, json={"name": "Steel Blade"})
+    client.post("/api/v1/items/", headers=auth_headers, json={"name": "Copper Pan"})
+
+    response = client.get("/api/v1/items/", params={"q": "steel"})
+    assert response.status_code == 200
+    names = [item["name"] for item in response.json()]
+    assert names == ["Steel Blade"]
+
+
 def test_update_item(client, auth_headers):
     client.post("/api/v1/items/", headers=auth_headers, json={"name": "Draft", "strength": 5})
     response = client.put(

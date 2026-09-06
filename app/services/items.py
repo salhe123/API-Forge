@@ -11,12 +11,14 @@ from app.schemas.user import User
 def list_items(
     db: Session,
     min_strength: Optional[int] = None,
+    q: Optional[str] = None,
     skip: int = 0,
     limit: int = 20,
 ) -> List[Item]:
     return items_repository.list_items(
         db,
         min_strength=min_strength,
+        q=q,
         skip=skip,
         limit=limit,
     )

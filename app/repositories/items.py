@@ -14,12 +14,15 @@ def _to_schema(row: ItemModel) -> Item:
 def list_items(
     db: Session,
     min_strength: Optional[int] = None,
+    q: Optional[str] = None,
     skip: int = 0,
     limit: int = 20,
 ) -> List[Item]:
     statement = select(ItemModel).order_by(ItemModel.id)
     if min_strength is not None:
         statement = statement.where(ItemModel.strength >= min_strength)
+    if q:
+        statement = statement.where(ItemModel.name.ilike("%{0}%".format(q)))
     statement = statement.offset(skip).limit(limit)
     return [_to_schema(row) for row in db.scalars(statement).all()]
 
