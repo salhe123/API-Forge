@@ -1,4 +1,6 @@
 from contextlib import asynccontextmanager
+import logging
+import time
 from typing import Type
 
 from fastapi import FastAPI, Request
@@ -14,6 +16,8 @@ from app.core.exceptions import (
     NotFoundError,
 )
 from app.db.session import init_db
+
+logger = logging.getLogger("api_forge")
 
 _ERROR_STATUS = {
     NotFoundError: 404,
@@ -44,6 +48,7 @@ def _add_error_handler(application: FastAPI, exc_class: Type[Exception], status_
 
 
 def create_app(testing: bool = False) -> FastAPI:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     settings = get_settings()
     application = FastAPI(
         title=settings.app_name,
@@ -59,6 +64,20 @@ def create_app(testing: bool = False) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @application.middleware("http")
+    async def log_requests(request: Request, call_next):
+        started = time.perf_counter()
+        response = await call_next(request)
+        elapsed_ms = (time.perf_counter() - started) * 1000
+        logger.info(
+            "%s %s -> %s (%.1fms)",
+            request.method,
+            request.url.path,
+            response.status_code,
+            elapsed_ms,
+        )
+        return response
 
     for exc_class, status_code in _ERROR_STATUS.items():
         _add_error_handler(application, exc_class, status_code)
