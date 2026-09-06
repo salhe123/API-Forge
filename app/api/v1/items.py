@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
-from app.schemas.item import Item, ItemCreate, ItemUpdate
+from app.schemas.item import Item, ItemCreate, ItemPatch, ItemUpdate
 from app.schemas.user import User
 from app.services import items as items_service
 
@@ -52,6 +52,16 @@ def update_item(
     current_user: User = Depends(get_current_user),
 ) -> Item:
     return items_service.update_item(db, item_id, payload, current_user)
+
+
+@router.patch("/{item_id}", response_model=Item)
+def patch_item(
+    item_id: int,
+    payload: ItemPatch,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Item:
+    return items_service.patch_item(db, item_id, payload, current_user)
 
 
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)

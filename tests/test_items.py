@@ -76,6 +76,19 @@ def test_update_item(client, auth_headers):
     assert response.json()["strength"] == 70
 
 
+def test_patch_item_updates_one_field(client, auth_headers):
+    client.post(
+        "/api/v1/items/",
+        headers=auth_headers,
+        json={"name": "Draft", "description": "Keep me", "strength": 5},
+    )
+    response = client.patch("/api/v1/items/1", headers=auth_headers, json={"strength": 40})
+    assert response.status_code == 200
+    assert response.json()["name"] == "Draft"
+    assert response.json()["description"] == "Keep me"
+    assert response.json()["strength"] == 40
+
+
 def test_delete_item(client, auth_headers):
     client.post("/api/v1/items/", headers=auth_headers, json={"name": "Scrap"})
     deleted = client.delete("/api/v1/items/1", headers=auth_headers)

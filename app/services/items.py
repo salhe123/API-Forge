@@ -1,10 +1,10 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ForbiddenError, NotFoundError
 from app.repositories import items as items_repository
-from app.schemas.item import Item, ItemCreate, ItemUpdate
+from app.schemas.item import Item, ItemCreate, ItemPatch, ItemUpdate
 from app.schemas.user import User
 
 
@@ -40,7 +40,7 @@ def create_item(db: Session, payload: ItemCreate, current_user: User) -> Item:
 def update_item(
     db: Session,
     item_id: int,
-    payload: ItemUpdate,
+    payload: Union[ItemUpdate, ItemPatch],
     current_user: User,
 ) -> Item:
     item = items_repository.get_item(db, item_id)
@@ -52,6 +52,15 @@ def update_item(
     if updated is None:
         raise NotFoundError("Item not found")
     return updated
+
+
+def patch_item(
+    db: Session,
+    item_id: int,
+    payload: ItemPatch,
+    current_user: User,
+) -> Item:
+    return update_item(db, item_id, payload, current_user)
 
 
 def delete_item(db: Session, item_id: int, current_user: User) -> None:

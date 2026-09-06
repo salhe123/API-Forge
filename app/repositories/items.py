@@ -1,10 +1,10 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.item import ItemModel
-from app.schemas.item import Item, ItemCreate, ItemUpdate
+from app.schemas.item import Item, ItemCreate, ItemPatch, ItemUpdate
 
 _SORT_COLUMNS = {
     "id": ItemModel.id,
@@ -52,11 +52,11 @@ def create_item(db: Session, payload: ItemCreate, owner_id: int) -> Item:
     return _to_schema(row)
 
 
-def update_item(db: Session, item_id: int, payload: ItemUpdate) -> Optional[Item]:
+def update_item(db: Session, item_id: int, payload: Union[ItemUpdate, ItemPatch]) -> Optional[Item]:
     row = db.get(ItemModel, item_id)
     if row is None:
         return None
-    for field, value in payload.model_dump().items():
+    for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(row, field, value)
     db.commit()
     db.refresh(row)
