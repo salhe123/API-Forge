@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 import logging
 import time
+import uuid
 from typing import Type
 
 from fastapi import FastAPI, Request
@@ -64,6 +65,13 @@ def create_app(testing: bool = False) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @application.middleware("http")
+    async def add_request_id(request: Request, call_next):
+        request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
 
     @application.middleware("http")
     async def log_requests(request: Request, call_next):
