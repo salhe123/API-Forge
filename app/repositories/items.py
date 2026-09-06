@@ -6,6 +6,11 @@ from sqlalchemy.orm import Session
 from app.models.item import ItemModel
 from app.schemas.item import Item, ItemCreate, ItemUpdate
 
+_SORT_COLUMNS = {
+    "id": ItemModel.id,
+    "strength": ItemModel.strength,
+}
+
 
 def _to_schema(row: ItemModel) -> Item:
     return Item.model_validate(row)
@@ -15,10 +20,15 @@ def list_items(
     db: Session,
     min_strength: Optional[int] = None,
     q: Optional[str] = None,
+    sort: str = "id",
     skip: int = 0,
     limit: int = 20,
 ) -> List[Item]:
-    statement = select(ItemModel).order_by(ItemModel.id)
+    descending = sort.startswith("-")
+    column_name = sort[1:] if descending else sort
+    column = _SORT_COLUMNS.get(column_name, ItemModel.id)
+    order = column.desc() if descending else column.asc()
+    statement = select(ItemModel).order_by(order)
     if min_strength is not None:
         statement = statement.where(ItemModel.strength >= min_strength)
     if q:

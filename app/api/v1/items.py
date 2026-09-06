@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
@@ -15,6 +15,7 @@ router = APIRouter()
 def list_items(
     min_strength: Optional[int] = Query(default=None, ge=1, le=100),
     q: Optional[str] = Query(default=None, min_length=1, max_length=100),
+    sort: Literal["id", "-id", "strength", "-strength"] = Query(default="id"),
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
@@ -23,6 +24,7 @@ def list_items(
         db,
         min_strength=min_strength,
         q=q,
+        sort=sort,
         skip=skip,
         limit=limit,
     )

@@ -54,6 +54,16 @@ def test_list_items_searches_by_name(client, auth_headers):
     assert names == ["Steel Blade"]
 
 
+def test_list_items_sorts_by_strength_desc(client, auth_headers):
+    client.post("/api/v1/items/", headers=auth_headers, json={"name": "Soft", "strength": 10})
+    client.post("/api/v1/items/", headers=auth_headers, json={"name": "Hard", "strength": 90})
+
+    response = client.get("/api/v1/items/", params={"sort": "-strength"})
+    assert response.status_code == 200
+    names = [item["name"] for item in response.json()]
+    assert names == ["Hard", "Soft"]
+
+
 def test_update_item(client, auth_headers):
     client.post("/api/v1/items/", headers=auth_headers, json={"name": "Draft", "strength": 5})
     response = client.put(

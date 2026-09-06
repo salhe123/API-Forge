@@ -12,6 +12,7 @@ def list_items(
     db: Session,
     min_strength: Optional[int] = None,
     q: Optional[str] = None,
+    sort: str = "id",
     skip: int = 0,
     limit: int = 20,
 ) -> List[Item]:
@@ -19,6 +20,7 @@ def list_items(
         db,
         min_strength=min_strength,
         q=q,
+        sort=sort,
         skip=skip,
         limit=limit,
     )
