@@ -74,6 +74,16 @@ def test_list_items_filters_by_owner_id(client, auth_headers, other_auth_headers
     assert names == ["Mine"]
 
 
+def test_create_item_strips_name_whitespace(client, auth_headers):
+    created = client.post(
+        "/api/v1/items/",
+        headers=auth_headers,
+        json={"name": "  Steel Blade  "},
+    )
+    assert created.status_code == 201
+    assert created.json()["name"] == "Steel Blade"
+
+
 def test_update_item(client, auth_headers):
     client.post("/api/v1/items/", headers=auth_headers, json={"name": "Draft", "strength": 5})
     response = client.put(
