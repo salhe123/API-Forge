@@ -4,6 +4,15 @@ def test_hello(client):
     assert response.json() == {"message": "Hello API Forge"}
 
 
+def test_api_v1_root(client):
+    response = client.get("/api/v1/")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["name"] == "API Forge"
+    assert body["version"] == "0.1.0"
+    assert body["docs"] == "/docs"
+
+
 def test_health(client):
     response = client.get("/api/v1/health")
     assert response.status_code == 200
