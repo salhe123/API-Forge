@@ -64,6 +64,16 @@ def test_list_items_sorts_by_strength_desc(client, auth_headers):
     assert names == ["Hard", "Soft"]
 
 
+def test_list_items_filters_by_owner_id(client, auth_headers, other_auth_headers):
+    client.post("/api/v1/items/", headers=auth_headers, json={"name": "Mine"})
+    client.post("/api/v1/items/", headers=other_auth_headers, json={"name": "Theirs"})
+
+    response = client.get("/api/v1/items/", params={"owner_id": 1})
+    assert response.status_code == 200
+    names = [item["name"] for item in response.json()]
+    assert names == ["Mine"]
+
+
 def test_update_item(client, auth_headers):
     client.post("/api/v1/items/", headers=auth_headers, json={"name": "Draft", "strength": 5})
     response = client.put(

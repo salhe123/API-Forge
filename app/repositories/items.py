@@ -21,6 +21,7 @@ def list_items(
     min_strength: Optional[int] = None,
     q: Optional[str] = None,
     sort: str = "id",
+    owner_id: Optional[int] = None,
     skip: int = 0,
     limit: int = 20,
 ) -> List[Item]:
@@ -33,6 +34,8 @@ def list_items(
         statement = statement.where(ItemModel.strength >= min_strength)
     if q:
         statement = statement.where(ItemModel.name.ilike("%{0}%".format(q)))
+    if owner_id is not None:
+        statement = statement.where(ItemModel.owner_id == owner_id)
     statement = statement.offset(skip).limit(limit)
     return [_to_schema(row) for row in db.scalars(statement).all()]
 

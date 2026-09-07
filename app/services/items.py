@@ -13,6 +13,7 @@ def list_items(
     min_strength: Optional[int] = None,
     q: Optional[str] = None,
     sort: str = "id",
+    owner_id: Optional[int] = None,
     skip: int = 0,
     limit: int = 20,
 ) -> List[Item]:
@@ -21,6 +22,7 @@ def list_items(
         min_strength=min_strength,
         q=q,
         sort=sort,
+        owner_id=owner_id,
         skip=skip,
         limit=limit,
     )
