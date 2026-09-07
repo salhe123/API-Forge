@@ -17,6 +17,7 @@ def test_register_and_login(client):
     token = login.json()
     assert token["token_type"] == "bearer"
     assert token["access_token"]
+    assert token["expires_in"] == 3600
 
 
 def test_register_duplicate_email(client):

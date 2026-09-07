@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.exceptions import AuthenticationError, ConflictError
 from app.core.security import (
     create_access_token,
@@ -29,4 +30,8 @@ def authenticate_user(db: Session, email: str, password: str) -> Token:
     if not user.is_active:
         raise AuthenticationError("Inactive user")
     token = create_access_token(str(user.id))
-    return Token(access_token=token)
+    settings = get_settings()
+    return Token(
+        access_token=token,
+        expires_in=settings.access_token_expire_minutes * 60,
+    )
