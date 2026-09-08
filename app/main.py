@@ -6,6 +6,7 @@ from typing import Type
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -66,6 +67,7 @@ def create_app(testing: bool = False) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    application.add_middleware(GZipMiddleware, minimum_size=500)
 
     @application.middleware("http")
     async def security_headers(request: Request, call_next):
