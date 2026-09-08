@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -40,10 +40,13 @@ def get_item(item_id: int, db: Session = Depends(get_db)) -> Item:
 @router.post("/", response_model=Item, status_code=status.HTTP_201_CREATED)
 def create_item(
     payload: ItemCreate,
+    response: Response,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Item:
-    return items_service.create_item(db, payload, current_user)
+    item = items_service.create_item(db, payload, current_user)
+    response.headers["Location"] = "/api/v1/items/{0}".format(item.id)
+    return item
 
 
 @router.put("/{item_id}", response_model=Item)

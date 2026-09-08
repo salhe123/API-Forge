@@ -6,6 +6,7 @@ def test_create_and_get_item(client, auth_headers):
     )
     assert created.status_code == 201
     body = created.json()
+    assert created.headers["Location"] == "/api/v1/items/1"
     assert body["id"] == 1
     assert body["name"] == "Steel Blade"
     assert body["owner_id"] == 1
