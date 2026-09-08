@@ -32,9 +32,11 @@ _ERROR_STATUS = {
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
+    logger.info("API Forge starting")
     if not getattr(application.state, "testing", False):
         init_db()
     yield
+    logger.info("API Forge stopped")
 
 
 def _add_error_handler(application: FastAPI, exc_class: Type[Exception], status_code: int) -> None:
