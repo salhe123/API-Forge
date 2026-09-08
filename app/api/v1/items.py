@@ -14,6 +14,7 @@ router = APIRouter()
 @router.get("/", response_model=List[Item])
 def list_items(
     min_strength: Optional[int] = Query(default=None, ge=1, le=100),
+    max_strength: Optional[int] = Query(default=None, ge=1, le=100),
     q: Optional[str] = Query(default=None, min_length=1, max_length=100),
     sort: Literal["id", "-id", "strength", "-strength"] = Query(default="id"),
     owner_id: Optional[int] = Query(default=None, ge=1),
@@ -24,6 +25,7 @@ def list_items(
     return items_service.list_items(
         db,
         min_strength=min_strength,
+        max_strength=max_strength,
         q=q,
         sort=sort,
         owner_id=owner_id,

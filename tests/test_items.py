@@ -34,6 +34,16 @@ def test_list_items_filters_by_min_strength(client, auth_headers):
     assert names == ["Hard Steel"]
 
 
+def test_list_items_filters_by_max_strength(client, auth_headers):
+    client.post("/api/v1/items/", headers=auth_headers, json={"name": "Soft Iron", "strength": 10})
+    client.post("/api/v1/items/", headers=auth_headers, json={"name": "Hard Steel", "strength": 80})
+
+    response = client.get("/api/v1/items/", params={"max_strength": 20})
+    assert response.status_code == 200
+    names = [item["name"] for item in response.json()]
+    assert names == ["Soft Iron"]
+
+
 def test_list_items_supports_skip_and_limit(client, auth_headers):
     client.post("/api/v1/items/", headers=auth_headers, json={"name": "One"})
     client.post("/api/v1/items/", headers=auth_headers, json={"name": "Two"})

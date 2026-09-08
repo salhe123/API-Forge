@@ -19,6 +19,7 @@ def _to_schema(row: ItemModel) -> Item:
 def list_items(
     db: Session,
     min_strength: Optional[int] = None,
+    max_strength: Optional[int] = None,
     q: Optional[str] = None,
     sort: str = "id",
     owner_id: Optional[int] = None,
@@ -32,6 +33,8 @@ def list_items(
     statement = select(ItemModel).order_by(order)
     if min_strength is not None:
         statement = statement.where(ItemModel.strength >= min_strength)
+    if max_strength is not None:
+        statement = statement.where(ItemModel.strength <= max_strength)
     if q:
         statement = statement.where(ItemModel.name.ilike("%{0}%".format(q)))
     if owner_id is not None:

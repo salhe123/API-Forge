@@ -11,6 +11,7 @@ from app.schemas.user import User
 def list_items(
     db: Session,
     min_strength: Optional[int] = None,
+    max_strength: Optional[int] = None,
     q: Optional[str] = None,
     sort: str = "id",
     owner_id: Optional[int] = None,
@@ -20,6 +21,7 @@ def list_items(
     return items_repository.list_items(
         db,
         min_strength=min_strength,
+        max_strength=max_strength,
         q=q,
         sort=sort,
         owner_id=owner_id,
