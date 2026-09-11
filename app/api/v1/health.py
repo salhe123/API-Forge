@@ -4,6 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
+from app.core.config import get_settings
 
 router = APIRouter()
 
@@ -17,4 +18,8 @@ def health(db: Session = Depends(get_db)):
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={"status": "unhealthy", "database": "error"},
         )
-    return {"status": "the backend is healthy", "database": "ok"}
+    return {
+        "status": "the backend is healthy",
+        "database": "ok",
+        "version": get_settings().app_version,
+    }

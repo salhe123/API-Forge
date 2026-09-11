@@ -16,7 +16,11 @@ def test_api_v1_root(client):
 def test_health(client):
     response = client.get("/api/v1/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "the backend is healthy", "database": "ok"}
+    assert response.json() == {
+        "status": "the backend is healthy",
+        "database": "ok",
+        "version": "0.1.0",
+    }
     assert response.headers.get("X-Request-ID")
     assert response.headers.get("X-Content-Type-Options") == "nosniff"
     assert response.headers.get("X-Frame-Options") == "DENY"
