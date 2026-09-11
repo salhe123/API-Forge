@@ -12,6 +12,15 @@ def _strip_name(value: Optional[str]) -> Optional[str]:
     return stripped
 
 
+def _strip_description(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    stripped = value.strip()
+    if not stripped:
+        return None
+    return stripped
+
+
 class ItemCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     description: Optional[str] = Field(default=None, max_length=500)
@@ -23,6 +32,11 @@ class ItemCreate(BaseModel):
         stripped = _strip_name(value)
         assert stripped is not None
         return stripped
+
+    @field_validator("description")
+    @classmethod
+    def strip_description(cls, value: Optional[str]) -> Optional[str]:
+        return _strip_description(value)
 
 
 class ItemUpdate(BaseModel):
@@ -37,6 +51,11 @@ class ItemUpdate(BaseModel):
         assert stripped is not None
         return stripped
 
+    @field_validator("description")
+    @classmethod
+    def strip_description(cls, value: Optional[str]) -> Optional[str]:
+        return _strip_description(value)
+
 
 class ItemPatch(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=100)
@@ -47,6 +66,11 @@ class ItemPatch(BaseModel):
     @classmethod
     def strip_name(cls, value: Optional[str]) -> Optional[str]:
         return _strip_name(value)
+
+    @field_validator("description")
+    @classmethod
+    def strip_description(cls, value: Optional[str]) -> Optional[str]:
+        return _strip_description(value)
 
     @model_validator(mode="after")
     def at_least_one_field(self) -> "ItemPatch":

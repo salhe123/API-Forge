@@ -115,6 +115,16 @@ def test_create_item_strips_name_whitespace(client, auth_headers):
     assert created.json()["name"] == "Steel Blade"
 
 
+def test_create_item_strips_description_whitespace(client, auth_headers):
+    created = client.post(
+        "/api/v1/items/",
+        headers=auth_headers,
+        json={"name": "Steel Blade", "description": "  First forging  "},
+    )
+    assert created.status_code == 201
+    assert created.json()["description"] == "First forging"
+
+
 def test_update_item(client, auth_headers):
     client.post("/api/v1/items/", headers=auth_headers, json={"name": "Draft", "strength": 5})
     response = client.put(
