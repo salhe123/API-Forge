@@ -5,6 +5,7 @@ def test_register_and_login(client):
     )
     assert created.status_code == 201
     body = created.json()
+    assert created.headers["Location"] == "/api/v1/auth/me"
     assert body["email"] == "forge@example.com"
     assert "password" not in body
     assert "hashed_password" not in body
