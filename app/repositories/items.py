@@ -9,6 +9,7 @@ from app.schemas.item import Item, ItemCreate, ItemPatch, ItemUpdate
 _SORT_COLUMNS = {
     "id": ItemModel.id,
     "strength": ItemModel.strength,
+    "name": ItemModel.name,
 }
 
 

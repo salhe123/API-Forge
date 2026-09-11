@@ -17,7 +17,7 @@ def list_items(
     min_strength: Optional[int] = Query(default=None, ge=1, le=100),
     max_strength: Optional[int] = Query(default=None, ge=1, le=100),
     q: Optional[str] = Query(default=None, min_length=1, max_length=100),
-    sort: Literal["id", "-id", "strength", "-strength"] = Query(default="id"),
+    sort: Literal["id", "-id", "strength", "-strength", "name", "-name"] = Query(default="id"),
     owner_id: Optional[int] = Query(default=None, ge=1),
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=20, ge=1, le=100),
