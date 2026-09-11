@@ -90,6 +90,21 @@ def get_item(db: Session, item_id: int) -> Optional[Item]:
     return _to_schema(row)
 
 
+def item_name_taken(
+    db: Session,
+    owner_id: int,
+    name: str,
+    exclude_item_id: Optional[int] = None,
+) -> bool:
+    statement = select(ItemModel.id).where(
+        ItemModel.owner_id == owner_id,
+        func.lower(ItemModel.name) == name.lower(),
+    )
+    if exclude_item_id is not None:
+        statement = statement.where(ItemModel.id != exclude_item_id)
+    return db.scalar(statement) is not None
+
+
 def create_item(db: Session, payload: ItemCreate, owner_id: int) -> Item:
     row = ItemModel(**payload.model_dump(), owner_id=owner_id)
     db.add(row)

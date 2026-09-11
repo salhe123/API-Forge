@@ -202,6 +202,17 @@ def test_create_item_requires_auth(client):
     assert response.status_code == 401
 
 
+def test_duplicate_item_name_for_owner_is_rejected(client, auth_headers, other_auth_headers):
+    first = client.post("/api/v1/items/", headers=auth_headers, json={"name": "Steel Blade"})
+    assert first.status_code == 201
+    duplicate = client.post("/api/v1/items/", headers=auth_headers, json={"name": "steel blade"})
+    assert duplicate.status_code == 409
+    assert duplicate.json()["detail"] == "Item name already used"
+
+    other = client.post("/api/v1/items/", headers=other_auth_headers, json={"name": "Steel Blade"})
+    assert other.status_code == 201
+
+
 def test_cannot_update_someone_elses_item(client, auth_headers, other_auth_headers):
     client.post("/api/v1/items/", headers=auth_headers, json={"name": "Mine"})
     response = client.put(

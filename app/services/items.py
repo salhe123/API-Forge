@@ -2,7 +2,7 @@ from typing import List, Optional, Union
 
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import ForbiddenError, NotFoundError
+from app.core.exceptions import ConflictError, ForbiddenError, NotFoundError
 from app.repositories import items as items_repository
 from app.schemas.item import Item, ItemCreate, ItemPatch, ItemUpdate
 from app.schemas.user import User
@@ -53,7 +53,18 @@ def get_item(db: Session, item_id: int) -> Item:
     return item
 
 
+def _ensure_unique_item_name(
+    db: Session,
+    owner_id: int,
+    name: str,
+    exclude_item_id: Optional[int] = None,
+) -> None:
+    if items_repository.item_name_taken(db, owner_id, name, exclude_item_id):
+        raise ConflictError("Item name already used")
+
+
 def create_item(db: Session, payload: ItemCreate, current_user: User) -> Item:
+    _ensure_unique_item_name(db, current_user.id, payload.name)
     return items_repository.create_item(db, payload, owner_id=current_user.id)
 
 
@@ -68,6 +79,8 @@ def update_item(
         raise NotFoundError("Item not found")
     if item.owner_id != current_user.id:
         raise ForbiddenError("Not allowed to modify this item")
+    if payload.name is not None:
+        _ensure_unique_item_name(db, current_user.id, payload.name, exclude_item_id=item_id)
     updated = items_repository.update_item(db, item_id, payload)
     if updated is None:
         raise NotFoundError("Item not found")
