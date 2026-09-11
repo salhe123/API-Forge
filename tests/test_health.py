@@ -24,6 +24,7 @@ def test_health(client):
     assert response.headers.get("X-Request-ID")
     assert response.headers.get("X-Content-Type-Options") == "nosniff"
     assert response.headers.get("X-Frame-Options") == "DENY"
+    assert response.headers.get("X-API-Version") == "0.1.0"
     assert float(response.headers["X-Response-Time-Ms"]) >= 0
 
 
@@ -32,6 +33,7 @@ def test_cors_exposes_custom_headers(client):
     assert response.status_code == 200
     exposed = response.headers.get("access-control-expose-headers", "")
     assert "Location" in exposed
+    assert "X-API-Version" in exposed
     assert "X-Request-ID" in exposed
     assert "X-Response-Time-Ms" in exposed
     assert "X-Total-Count" in exposed

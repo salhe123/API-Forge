@@ -70,6 +70,7 @@ def create_app(testing: bool = False) -> FastAPI:
         allow_headers=["*"],
         expose_headers=[
             "Location",
+            "X-API-Version",
             "X-Request-ID",
             "X-Response-Time-Ms",
             "X-Total-Count",
@@ -83,6 +84,7 @@ def create_app(testing: bool = False) -> FastAPI:
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["X-API-Version"] = settings.app_version
         if request.url.path.startswith("/api/v1/auth"):
             response.headers["Cache-Control"] = "no-store"
         return response
