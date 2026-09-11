@@ -68,6 +68,12 @@ def create_app(testing: bool = False) -> FastAPI:
         allow_credentials=False,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=[
+            "Location",
+            "X-Request-ID",
+            "X-Response-Time-Ms",
+            "X-Total-Count",
+        ],
     )
     application.add_middleware(GZipMiddleware, minimum_size=500)
 

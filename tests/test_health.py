@@ -23,6 +23,16 @@ def test_health(client):
     assert float(response.headers["X-Response-Time-Ms"]) >= 0
 
 
+def test_cors_exposes_custom_headers(client):
+    response = client.get("/api/v1/health", headers={"Origin": "http://localhost:4200"})
+    assert response.status_code == 200
+    exposed = response.headers.get("access-control-expose-headers", "")
+    assert "Location" in exposed
+    assert "X-Request-ID" in exposed
+    assert "X-Response-Time-Ms" in exposed
+    assert "X-Total-Count" in exposed
+
+
 def test_unknown_route_returns_json_404(client):
     response = client.get("/no-such-route")
     assert response.status_code == 404
