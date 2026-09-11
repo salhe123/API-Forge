@@ -30,6 +30,22 @@ def list_items(
     )
 
 
+def count_items(
+    db: Session,
+    min_strength: Optional[int] = None,
+    max_strength: Optional[int] = None,
+    q: Optional[str] = None,
+    owner_id: Optional[int] = None,
+) -> int:
+    return items_repository.count_items(
+        db,
+        min_strength=min_strength,
+        max_strength=max_strength,
+        q=q,
+        owner_id=owner_id,
+    )
+
+
 def get_item(db: Session, item_id: int) -> Item:
     item = items_repository.get_item(db, item_id)
     if item is None:

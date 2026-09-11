@@ -13,6 +13,7 @@ router = APIRouter()
 
 @router.get("/", response_model=List[Item])
 def list_items(
+    response: Response,
     min_strength: Optional[int] = Query(default=None, ge=1, le=100),
     max_strength: Optional[int] = Query(default=None, ge=1, le=100),
     q: Optional[str] = Query(default=None, min_length=1, max_length=100),
@@ -22,7 +23,7 @@ def list_items(
     limit: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> List[Item]:
-    return items_service.list_items(
+    items = items_service.list_items(
         db,
         min_strength=min_strength,
         max_strength=max_strength,
@@ -32,6 +33,15 @@ def list_items(
         skip=skip,
         limit=limit,
     )
+    total = items_service.count_items(
+        db,
+        min_strength=min_strength,
+        max_strength=max_strength,
+        q=q,
+        owner_id=owner_id,
+    )
+    response.headers["X-Total-Count"] = str(total)
+    return items
 
 
 @router.get("/{item_id}", response_model=Item)

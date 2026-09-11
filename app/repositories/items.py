@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from sqlalchemy import select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
 
 from app.models.item import ItemModel
@@ -14,6 +14,24 @@ _SORT_COLUMNS = {
 
 def _to_schema(row: ItemModel) -> Item:
     return Item.model_validate(row)
+
+
+def _apply_item_filters(
+    statement: Select,
+    min_strength: Optional[int] = None,
+    max_strength: Optional[int] = None,
+    q: Optional[str] = None,
+    owner_id: Optional[int] = None,
+) -> Select:
+    if min_strength is not None:
+        statement = statement.where(ItemModel.strength >= min_strength)
+    if max_strength is not None:
+        statement = statement.where(ItemModel.strength <= max_strength)
+    if q:
+        statement = statement.where(ItemModel.name.ilike("%{0}%".format(q)))
+    if owner_id is not None:
+        statement = statement.where(ItemModel.owner_id == owner_id)
+    return statement
 
 
 def list_items(
@@ -30,17 +48,32 @@ def list_items(
     column_name = sort[1:] if descending else sort
     column = _SORT_COLUMNS.get(column_name, ItemModel.id)
     order = column.desc() if descending else column.asc()
-    statement = select(ItemModel).order_by(order)
-    if min_strength is not None:
-        statement = statement.where(ItemModel.strength >= min_strength)
-    if max_strength is not None:
-        statement = statement.where(ItemModel.strength <= max_strength)
-    if q:
-        statement = statement.where(ItemModel.name.ilike("%{0}%".format(q)))
-    if owner_id is not None:
-        statement = statement.where(ItemModel.owner_id == owner_id)
+    statement = _apply_item_filters(
+        select(ItemModel).order_by(order),
+        min_strength=min_strength,
+        max_strength=max_strength,
+        q=q,
+        owner_id=owner_id,
+    )
     statement = statement.offset(skip).limit(limit)
     return [_to_schema(row) for row in db.scalars(statement).all()]
+
+
+def count_items(
+    db: Session,
+    min_strength: Optional[int] = None,
+    max_strength: Optional[int] = None,
+    q: Optional[str] = None,
+    owner_id: Optional[int] = None,
+) -> int:
+    statement = _apply_item_filters(
+        select(func.count()).select_from(ItemModel),
+        min_strength=min_strength,
+        max_strength=max_strength,
+        q=q,
+        owner_id=owner_id,
+    )
+    return db.scalar(statement) or 0
 
 
 def get_item(db: Session, item_id: int) -> Optional[Item]:

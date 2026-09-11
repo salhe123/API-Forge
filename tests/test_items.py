@@ -53,6 +53,7 @@ def test_list_items_supports_skip_and_limit(client, auth_headers):
     assert response.status_code == 200
     names = [item["name"] for item in response.json()]
     assert names == ["Two"]
+    assert response.headers["X-Total-Count"] == "3"
 
 
 def test_list_items_searches_by_name(client, auth_headers):
