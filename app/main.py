@@ -91,6 +91,7 @@ def create_app(testing: bool = False) -> FastAPI:
         started = time.perf_counter()
         response = await call_next(request)
         elapsed_ms = (time.perf_counter() - started) * 1000
+        response.headers["X-Response-Time-Ms"] = "{0:.1f}".format(elapsed_ms)
         logger.info(
             "%s %s -> %s (%.1fms)",
             request.method,

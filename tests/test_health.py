@@ -20,6 +20,7 @@ def test_health(client):
     assert response.headers.get("X-Request-ID")
     assert response.headers.get("X-Content-Type-Options") == "nosniff"
     assert response.headers.get("X-Frame-Options") == "DENY"
+    assert float(response.headers["X-Response-Time-Ms"]) >= 0
 
 
 def test_unknown_route_returns_json_404(client):
