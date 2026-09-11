@@ -155,6 +155,11 @@ def test_missing_item_returns_404(client):
     assert response.status_code == 404
 
 
+def test_item_id_below_one_is_rejected(client):
+    response = client.get("/api/v1/items/0")
+    assert response.status_code == 422
+
+
 def test_create_rejects_invalid_strength(client, auth_headers):
     response = client.post(
         "/api/v1/items/",

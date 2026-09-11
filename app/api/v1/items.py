@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -54,7 +54,7 @@ def list_items(
 
 
 @router.get("/{item_id}", response_model=Item)
-def get_item(item_id: int, db: Session = Depends(get_db)) -> Item:
+def get_item(item_id: int = Path(ge=1), db: Session = Depends(get_db)) -> Item:
     return items_service.get_item(db, item_id)
 
 
@@ -72,8 +72,8 @@ def create_item(
 
 @router.put("/{item_id}", response_model=Item)
 def update_item(
-    item_id: int,
     payload: ItemUpdate,
+    item_id: int = Path(ge=1),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Item:
@@ -82,8 +82,8 @@ def update_item(
 
 @router.patch("/{item_id}", response_model=Item)
 def patch_item(
-    item_id: int,
     payload: ItemPatch,
+    item_id: int = Path(ge=1),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Item:
@@ -92,7 +92,7 @@ def patch_item(
 
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_item(
-    item_id: int,
+    item_id: int = Path(ge=1),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> None:
