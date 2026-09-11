@@ -129,6 +129,13 @@ def create_app(testing: bool = False) -> FastAPI:
                 status_code=404,
                 content=_error_content(request, "Not found"),
             )
+        if exc.status_code == 405:
+            headers = dict(exc.headers) if exc.headers else None
+            return JSONResponse(
+                status_code=405,
+                content=_error_content(request, "Method not allowed"),
+                headers=headers,
+            )
         headers = None
         if exc.status_code == 401:
             headers = {"WWW-Authenticate": "Bearer"}
