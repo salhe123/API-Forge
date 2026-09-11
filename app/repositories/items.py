@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.item import ItemModel
@@ -29,7 +29,13 @@ def _apply_item_filters(
     if max_strength is not None:
         statement = statement.where(ItemModel.strength <= max_strength)
     if q:
-        statement = statement.where(ItemModel.name.ilike("%{0}%".format(q)))
+        pattern = "%{0}%".format(q)
+        statement = statement.where(
+            or_(
+                ItemModel.name.ilike(pattern),
+                ItemModel.description.ilike(pattern),
+            )
+        )
     if owner_id is not None:
         statement = statement.where(ItemModel.owner_id == owner_id)
     return statement

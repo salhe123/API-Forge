@@ -75,6 +75,24 @@ def test_list_items_searches_by_name(client, auth_headers):
     assert names == ["Steel Blade"]
 
 
+def test_list_items_searches_by_description(client, auth_headers):
+    client.post(
+        "/api/v1/items/",
+        headers=auth_headers,
+        json={"name": "Blade", "description": "Tempered steel"},
+    )
+    client.post(
+        "/api/v1/items/",
+        headers=auth_headers,
+        json={"name": "Pan", "description": "Cast iron"},
+    )
+
+    response = client.get("/api/v1/items/", params={"q": "tempered"})
+    assert response.status_code == 200
+    names = [item["name"] for item in response.json()]
+    assert names == ["Blade"]
+
+
 def test_list_items_sorts_by_strength_desc(client, auth_headers):
     client.post("/api/v1/items/", headers=auth_headers, json={"name": "Soft", "strength": 10})
     client.post("/api/v1/items/", headers=auth_headers, json={"name": "Hard", "strength": 90})
