@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional
 
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -23,6 +23,15 @@ def list_items(
     limit: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> List[Item]:
+    if (
+        min_strength is not None
+        and max_strength is not None
+        and min_strength > max_strength
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="min_strength cannot be greater than max_strength",
+        )
     items = items_service.list_items(
         db,
         min_strength=min_strength,
