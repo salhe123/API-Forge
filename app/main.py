@@ -59,6 +59,29 @@ def _add_error_handler(application: FastAPI, exc_class: Type[Exception], status_
         )
 
 
+def _handle_http_exception(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    if exc.status_code == 404:
+        return JSONResponse(
+            status_code=404,
+            content=_error_content(request, "Not found"),
+        )
+    if exc.status_code == 405:
+        headers = dict(exc.headers) if exc.headers else None
+        return JSONResponse(
+            status_code=405,
+            content=_error_content(request, "Method not allowed"),
+            headers=headers,
+        )
+    headers = None
+    if exc.status_code == 401:
+        headers = {"WWW-Authenticate": "Bearer"}
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=_error_content(request, exc.detail),
+        headers=headers,
+    )
+
+
 def create_app(testing: bool = False) -> FastAPI:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     settings = get_settings()
@@ -122,28 +145,7 @@ def create_app(testing: bool = False) -> FastAPI:
     for exc_class, status_code in _ERROR_STATUS.items():
         _add_error_handler(application, exc_class, status_code)
 
-    @application.exception_handler(StarletteHTTPException)
-    async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
-        if exc.status_code == 404:
-            return JSONResponse(
-                status_code=404,
-                content=_error_content(request, "Not found"),
-            )
-        if exc.status_code == 405:
-            headers = dict(exc.headers) if exc.headers else None
-            return JSONResponse(
-                status_code=405,
-                content=_error_content(request, "Method not allowed"),
-                headers=headers,
-            )
-        headers = None
-        if exc.status_code == 401:
-            headers = {"WWW-Authenticate": "Bearer"}
-        return JSONResponse(
-            status_code=exc.status_code,
-            content=_error_content(request, exc.detail),
-            headers=headers,
-        )
+    application.add_exception_handler(StarletteHTTPException, _handle_http_exception)
 
     @application.get("/")
     def hello() -> dict:

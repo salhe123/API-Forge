@@ -67,3 +67,12 @@ def test_login_accepts_email_with_different_case(client):
     )
     assert response.status_code == 200
     assert response.json()["access_token"]
+
+
+def test_register_strips_email_whitespace(client):
+    created = client.post(
+        "/api/v1/auth/register",
+        json={"email": "  forge@example.com  ", "password": "secret123"},
+    )
+    assert created.status_code == 201
+    assert created.json()["email"] == "forge@example.com"
