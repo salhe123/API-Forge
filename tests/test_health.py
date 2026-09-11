@@ -40,6 +40,7 @@ def test_cors_exposes_custom_headers(client):
 
 
 def test_unknown_route_returns_json_404(client):
-    response = client.get("/no-such-route")
+    response = client.get("/no-such-route", headers={"X-Request-ID": "forge-req-1"})
     assert response.status_code == 404
-    assert response.json() == {"detail": "Not found"}
+    assert response.json() == {"detail": "Not found", "request_id": "forge-req-1"}
+    assert response.headers["X-Request-ID"] == "forge-req-1"

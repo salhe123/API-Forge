@@ -39,15 +39,22 @@ async def lifespan(application: FastAPI):
     logger.info("API Forge stopped")
 
 
+def _error_content(request: Request, detail: object) -> dict:
+    return {
+        "detail": detail,
+        "request_id": getattr(request.state, "request_id", None),
+    }
+
+
 def _add_error_handler(application: FastAPI, exc_class: Type[Exception], status_code: int) -> None:
     @application.exception_handler(exc_class)
-    async def handler(_request: Request, exc: Exception) -> JSONResponse:
+    async def handler(request: Request, exc: Exception) -> JSONResponse:
         headers = None
         if status_code == 401:
             headers = {"WWW-Authenticate": "Bearer"}
         return JSONResponse(
             status_code=status_code,
-            content={"detail": getattr(exc, "detail", str(exc))},
+            content=_error_content(request, getattr(exc, "detail", str(exc))),
             headers=headers,
         )
 
@@ -92,6 +99,7 @@ def create_app(testing: bool = False) -> FastAPI:
     @application.middleware("http")
     async def add_request_id(request: Request, call_next):
         request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        request.state.request_id = request_id
         response = await call_next(request)
         response.headers["X-Request-ID"] = request_id
         return response
@@ -115,15 +123,18 @@ def create_app(testing: bool = False) -> FastAPI:
         _add_error_handler(application, exc_class, status_code)
 
     @application.exception_handler(StarletteHTTPException)
-    async def http_exception_handler(_request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
         if exc.status_code == 404:
-            return JSONResponse(status_code=404, content={"detail": "Not found"})
+            return JSONResponse(
+                status_code=404,
+                content=_error_content(request, "Not found"),
+            )
         headers = None
         if exc.status_code == 401:
             headers = {"WWW-Authenticate": "Bearer"}
         return JSONResponse(
             status_code=exc.status_code,
-            content={"detail": exc.detail},
+            content=_error_content(request, exc.detail),
             headers=headers,
         )
 
