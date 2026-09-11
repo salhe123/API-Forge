@@ -55,10 +55,12 @@ def test_me_returns_current_user(client, auth_headers):
 
 
 def test_login_accepts_email_with_different_case(client):
-    client.post(
+    created = client.post(
         "/api/v1/auth/register",
         json={"email": "Forge@Example.com", "password": "secret123"},
     )
+    assert created.status_code == 201
+    assert created.json()["email"] == "forge@example.com"
     response = client.post(
         "/api/v1/auth/login",
         json={"email": "forge@example.com", "password": "secret123"},

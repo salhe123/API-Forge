@@ -18,7 +18,6 @@ def get_user_by_email(db: Session, email: str) -> Optional[UserModel]:
 
 def create_user(db: Session, email: str, hashed_password: str) -> UserModel:
     row = UserModel(email=email.lower(), hashed_password=hashed_password)
-    row = UserModel(email=email, hashed_password=hashed_password)
     db.add(row)
     db.commit()
     db.refresh(row)
