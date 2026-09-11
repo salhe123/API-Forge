@@ -77,6 +77,8 @@ def create_app(testing: bool = False) -> FastAPI:
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "no-referrer"
+        if request.url.path.startswith("/api/v1/auth"):
+            response.headers["Cache-Control"] = "no-store"
         return response
 
     @application.middleware("http")

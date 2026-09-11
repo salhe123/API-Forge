@@ -18,6 +18,7 @@ def test_register_and_login(client):
     assert token["token_type"] == "bearer"
     assert token["access_token"]
     assert token["expires_in"] == 3600
+    assert login.headers["Cache-Control"] == "no-store"
 
 
 def test_register_duplicate_email(client):
@@ -43,6 +44,7 @@ def test_login_rejects_bad_password(client):
 def test_me_requires_token(client):
     response = client.get("/api/v1/auth/me")
     assert response.status_code == 401
+    assert response.headers["Cache-Control"] == "no-store"
 
 
 def test_me_returns_current_user(client, auth_headers):
